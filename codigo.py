@@ -35,9 +35,12 @@ def readfile():
     return dict(sorted(processosLeitura.items(), key=lambda item: item[1][0]))
 
 
+
 processos = readfile()
 for processo, dados in processos.items():
     print(f"Processo: {processo}, Tempo Chegada: {dados[0]}, Tempo Total: {dados[1]}, I/O Interrupts: {list(dados[2])}")
+
+tempo_espera = {processo: 0 for processo in processos.keys()}
 
 
 def FilaProcessos(Fila, tempo_atual, processos):
@@ -151,6 +154,15 @@ def roudrobin(quantum):
         # Atualiza o processo atual na CPU
         Fila, processo_atual, io_atual, tempo_quantum = CPU(Fila, processos, io_atual, quantum,tempo_quantum)
         print("Fila (Professor):", Fila[1:])
+
+        #
+        for processo in Fila[1:]:
+            if processo in tempo_espera:
+                tempo_espera[processo] += 1
+
+
+
+        tempo_espera
         tempo_quantum -= 1
         tempo_atual += 1
         #Incrementar 1 em cada contador de IO
@@ -166,6 +178,13 @@ print("-----------------------------------")
 
 
 roudrobin(4)
+
+
+print("\nTempo de espera:\n")
+print(tempo_espera)
+
+print("Soma:", sum(tempo_espera.values()))
+print("Media:", sum(tempo_espera.values()) / len(tempo_espera) if tempo_espera else 0)
 
 #EXTRA 
 
