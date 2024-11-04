@@ -34,7 +34,7 @@ def readfile():
 
     return dict(sorted(processosLeitura.items(), key=lambda item: item[1][0]))
 
-
+print("\nLeitura dos Processos\n")
 
 processos = readfile()
 for processo, dados in processos.items():
@@ -47,6 +47,7 @@ def FilaProcessos(Fila, tempo_atual, processos):
     Fila_aux = Fila[:]
     for processo, dados in processos.items():
         if tempo_atual == dados[0] and processo not in Fila_aux:
+            print("#[evento] CHEGADA:", processo)
             Fila_aux.append(processo)
     
     print("Fila:", Fila_aux)
@@ -80,7 +81,7 @@ def CPU(Fila, processos, io_atual,quantum,tempo_quantum):
                 processo_atual = Fila_aux[0] if Fila_aux else None
                 tempo_quantum = quantum
                 if processo_atual:
-                    print("#[evento] CHEGADA:", processo_atual, "(", processos[processo_atual][1], ")")
+                    #print("#[evento] CHEGADA:", processo_atual, "(", processos[processo_atual][1], ")")
                     print("Fila ATUAL =", Fila_aux)
                     print("CPU:", processo_atual, "(", processos[processo_atual][1], ")")
                     gantt_chart.append(processo_atual)
@@ -101,7 +102,7 @@ def roudrobin(quantum):
     processo_atual = ""
     
     io_atual = {processo: 0 for processo in processos.keys()}
-    print("dicionario de IO:", io_atual)
+
     print("***********************************")
     print("***** ESCALONADOR ROUND ROBIN *****")
     # Lista para armazenar os tempos de execução para o gráfico de Gantt
@@ -128,7 +129,7 @@ def roudrobin(quantum):
     while io_atual:
 
         print(f"********** TEMPO {tempo_atual} **************")
-
+        print("#[evento] CHEGADA:", Fila[0])
         Fila = FilaProcessos(Fila, tempo_atual, processos)
 
         # Verifica a preempção do quantum
@@ -143,8 +144,6 @@ def roudrobin(quantum):
             if processo_atual == processo:  
                 if dados[2]:  # Verifica se há interrupções de I/O
                     primeiro_elemento = dados[2][0]
-                    print("Contador (IO):",  io_atual[processo_atual])
-                    print("Primeiro elemento:", primeiro_elemento)
                     if  io_atual[processo_atual] == primeiro_elemento and  io_atual[processo_atual] != 0:
                         print("#[evento] IO")
                         dados[2].pop(0)  # Remove o evento de I/O
@@ -172,15 +171,21 @@ def roudrobin(quantum):
 # Executa o round-robin
 
 
+
+roudrobin(4)
+
+
+
 print("-----------------------------------")
 print("------- Encerrando simulacao ------")
 print("-----------------------------------")
 
 
-roudrobin(4)
+
 
 
 print("\nTempo de espera:\n")
+
 print(tempo_espera)
 
 print("Soma:", sum(tempo_espera.values()))
