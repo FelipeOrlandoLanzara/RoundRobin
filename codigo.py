@@ -1,3 +1,9 @@
+
+import time
+
+#Adicional
+gantt_chart = []
+
 def readfile():
     processosLeitura = {}
 
@@ -74,10 +80,12 @@ def CPU(Fila, processos, io_atual,quantum,tempo_quantum):
                     print("#[evento] CHEGADA:", processo_atual, "(", processos[processo_atual][1], ")")
                     print("Fila ATUAL =", Fila_aux)
                     print("CPU:", processo_atual, "(", processos[processo_atual][1], ")")
+                    gantt_chart.append(processo_atual)
                     processos[processo_atual][1] -= 1
                 return Fila_aux, processo_atual, io_atual, tempo_quantum
 
             print("CPU:", processo_atual, "(", dados[1], ")")
+            gantt_chart.append(processo_atual)
             dados[1] -= 1
 
     return Fila_aux, processo_atual, io_atual , tempo_quantum
@@ -88,10 +96,13 @@ def roudrobin(quantum):
     tempo_quantum = quantum
     Fila = []
     processo_atual = ""
+    
     io_atual = {processo: 0 for processo in processos.keys()}
     print("dicionario de IO:", io_atual)
     print("***********************************")
     print("***** ESCALONADOR ROUND ROBIN *****")
+    # Lista para armazenar os tempos de execução para o gráfico de Gantt
+    
 
 #ADICIONAL VERIFICAR SE O PROCESSO VAI ENTRAR NA FILA ANTES DO SEU RESPECTIVO TEMPO NO QUAL O PROCESSO ENTRA OCORRER
 
@@ -129,11 +140,8 @@ def roudrobin(quantum):
             if processo_atual == processo:  
                 if dados[2]:  # Verifica se há interrupções de I/O
                     primeiro_elemento = dados[2][0]
-                    #dados[2][1:] = [io - 1 for io in dados[2][1:]]
-
                     print("Contador (IO):",  io_atual[processo_atual])
                     print("Primeiro elemento:", primeiro_elemento)
-                    #dados[2][0]-=1
                     if  io_atual[processo_atual] == primeiro_elemento and  io_atual[processo_atual] != 0:
                         print("#[evento] IO")
                         dados[2].pop(0)  # Remove o evento de I/O
@@ -145,11 +153,104 @@ def roudrobin(quantum):
         print("Fila (Professor):", Fila[1:])
         tempo_quantum -= 1
         tempo_atual += 1
-        #incrementar 1 em cada contador de IO
+        #Incrementar 1 em cada contador de IO
         if processo_atual:
             io_atual[processo_atual] += 1
 
 # Executa o round-robin
 
+
+print("-----------------------------------")
+print("------- Encerrando simulacao ------")
+print("-----------------------------------")
+
+
 roudrobin(4)
+
+#EXTRA 
+
+#Fazer uma apresentação de resultados de forma gráfica (pode ser no terminal) e em tempo
+#real enquanto o algoritmo é executado. Sugestão: coloque um atraso (1 seg.) entre cada
+#tempo. Não basta gerar uma imagem final da execução. Tem que ser gerado em tempo real,
+#ou seja, enquanto executa vai mostrando o gráfico de gantt sendo feito.
+
+
+#DEBUG PURPOSE PRINT
+# print("\nGráfico de Gantt:")
+# print(" | ".join(gantt_chart))
+# print("-----------------------------------")
+
+
+
+gantt_chart_dict = {}
+
+
+processos = sorted(set(gantt_chart))  # Mantém a ordem dos processos única e ordenada
+gantt_chart_dict = {processo: [] for processo in processos}
+
+# Define o comprimento do gráfico de Gantt
+gantt_length = len(gantt_chart)
+
+# Preenche o gráfico de Gantt coluna por coluna, simulando tempo real
+for i in range(gantt_length):
+    print("\nGráfico de Gantt:")
+
+    # Atualiza cada processo no instante de tempo i
+    print("Tempo :",i)
+    for processo in processos:
+        # Se o processo atual corresponde ao instante de tempo, marca com "x", caso contrário, "-"
+        if gantt_chart[i] == processo:
+            gantt_chart_dict[processo].append("x")
+        else:
+            gantt_chart_dict[processo].append("-")
+
+        # Imprime a linha atualizada para o processo
+
+        print(f"{processo}: {''.join(gantt_chart_dict[processo])}")
+
+    # Delay de 1 segundo entre cada coluna para simulação de tempo real
+    time.sleep(1)
+
+
+print("Finalizado!")
+
+
+##CALCULAR TEMPO DE ESPERA E TEMPO DE ESPERA MEDIO 
+
+
+##CRIAR GRÁFICO SEPARADO
+
+
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+
+processos = sorted(set(gantt_chart))  # Processos únicos
+cores = {processo: plt.cm.tab20(i / len(processos)) for i, processo in enumerate(processos)}
+
+# Configura o gráfico
+fig, ax = plt.subplots(figsize=(10, 6))
+ax.set_title("Diagrama de Gantt dos Processos")
+ax.set_xlabel("Tempo")
+ax.set_ylabel("Processos")
+
+# Mapeia os processos para linhas no gráfico
+y_pos = {processo: i for i, processo in enumerate(processos)}
+
+# Adiciona os blocos de tempo para cada processo no gráfico de Gantt
+for time, processo in enumerate(gantt_chart):
+    ax.broken_barh([(time, 1)], (y_pos[processo] - 0.4, 0.8), facecolors=cores[processo])
+
+# Adiciona as labels e personaliza o gráfico
+ax.set_yticks([y_pos[processo] for processo in processos])
+ax.set_yticklabels(processos)
+ax.set_xticks(range(0, len(gantt_chart) + 1, 1))
+ax.grid(True, axis='x', linestyle='--', alpha=0.7)
+
+# Adiciona legenda
+handles = [mpatches.Patch(color=cores[proc], label=proc) for proc in processos]
+ax.legend(handles=handles, title="Processos")
+
+plt.show()
+
+
 
