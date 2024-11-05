@@ -102,14 +102,11 @@ def roudrobin(quantum):
     processo_atual = ""
     
     io_atual = {processo: 0 for processo in processos.keys()}
-
-    print("***********************************")
-    print("***** ESCALONADOR ROUND ROBIN *****")
-    # Lista para armazenar os tempos de execução para o gráfico de Gantt
+    control = None
+    print()
+    print("*********************************")
+    print("*****ESCALONADOR ROUND ROBIN*****")
     
-
-#ADICIONAL VERIFICAR SE O PROCESSO VAI ENTRAR NA FILA ANTES DO SEU RESPECTIVO TEMPO NO QUAL O PROCESSO ENTRA OCORRER
-
 
 #INICIALIZAR A FILA DE PROCESSOS PELA PRIMEIRA VEZ
     for processo, dados in processos.items():
@@ -119,17 +116,19 @@ def roudrobin(quantum):
 
     while not Fila:
         print(f"********** TEMPO {tempo_atual} **************")  
-        tempo_atual+=1
-        print("AQUARDANDO PROCESSOS NA FILA")
+        print("AGUARDANDO PROCESSOS NA FILA")
+        print("CPU: VAZIA")
         Fila = FilaProcessos(Fila, tempo_atual, processos)
         if Fila:
             print("Iniciando....")
-
+            control = 1
+        tempo_atual+=1
 
     while io_atual:
 
         print(f"********** TEMPO {tempo_atual} **************")
-        print("#[evento] CHEGADA:", Fila[0])
+        if not control:
+            print("#[evento] CHEGADA:", Fila[0])
         Fila = FilaProcessos(Fila, tempo_atual, processos)
 
         # Verifica a preempção do quantum
@@ -172,7 +171,7 @@ def roudrobin(quantum):
 
 
 
-roudrobin(4)
+roudrobin(4)    
 
 
 
