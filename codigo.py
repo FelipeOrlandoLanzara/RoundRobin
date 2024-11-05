@@ -1,6 +1,4 @@
 
-import time
-
 #Adicional
 gantt_chart = []
 
@@ -43,14 +41,20 @@ for processo, dados in processos.items():
 tempo_espera = {processo: 0 for processo in processos.keys()}
 
 
+
+
 def FilaProcessos(Fila, tempo_atual, processos):
     Fila_aux = Fila[:]
     for processo, dados in processos.items():
         if tempo_atual == dados[0] and processo not in Fila_aux:
             print("#[evento] CHEGADA:", processo)
+            saida.write(f"#[evento] CHEGADA: {processo}\n\n")
+            #ADICIONAR NO ARQUIVO
             Fila_aux.append(processo)
     
     print("Fila:", Fila_aux)
+    saida.write(f"Fila: {Fila_aux}\n\n")
+    #ADICIONAR NO ARQUIVO
     return Fila_aux
 
 
@@ -75,6 +79,8 @@ def CPU(Fila, processos, io_atual,quantum,tempo_quantum):
         if processo_atual == processo:
             if dados[1] == 0:
                 print("#[evento] ENCERRANDO ", processo_atual)
+                saida.write(f"#[evento] ENCERRANDO {processo_atual}\n\n")
+                #ADICIONAR NO ARQUIVO 
                 io_atual.pop(processo_atual, None) # caso a chave não exista não faz nada (2o argumento)
                 processo_atual = None
                 Fila_aux = Fila_handler(Fila_aux, processo_atual)
@@ -82,18 +88,26 @@ def CPU(Fila, processos, io_atual,quantum,tempo_quantum):
                 tempo_quantum = quantum
                 if processo_atual:
                     #print("#[evento] CHEGADA:", processo_atual, "(", processos[processo_atual][1], ")")
-                    print("Fila ATUAL =", Fila_aux)
+                     #? print("Fila ATUAL =", Fila_aux)
+                    #ADICIONAR NO ARQUIVO
                     print("CPU:", processo_atual, "(", processos[processo_atual][1], ")")
+                    saida.write(f"CPU: {processo_atual} ({processos[processo_atual][1]})\n\n")
+                    #ADICIONAR NO ARQUIVO
                     gantt_chart.append(processo_atual)
                     processos[processo_atual][1] -= 1
                 return Fila_aux, processo_atual, io_atual, tempo_quantum
 
             print("CPU:", processo_atual, "(", dados[1], ")")
+            saida.write(f"CPU: {processo_atual} ({dados[1]})\n\n")
+            #ADICIONAR NO ARQUIVO
             gantt_chart.append(processo_atual)
             dados[1] -= 1
 
     return Fila_aux, processo_atual, io_atual , tempo_quantum
 
+
+
+saida = open("saida.txt", "w")
 
 def roudrobin(quantum):
     tempo_atual = 0
@@ -105,7 +119,11 @@ def roudrobin(quantum):
     control = None
     print()
     print("*********************************")
+    #ADICIONAR NO ARQUIVO
+    saida.write("*********************************\n")
     print("*****ESCALONADOR ROUND ROBIN*****")
+    saida.write("*****ESCALONADOR ROUND ROBIN*****\n")
+    #ADICIONAR NO ARQUIVO
     
 
 #INICIALIZAR A FILA DE PROCESSOS PELA PRIMEIRA VEZ
@@ -116,24 +134,38 @@ def roudrobin(quantum):
 
     while not Fila:
         print(f"********** TEMPO {tempo_atual} **************")  
+        saida.write(f"********** TEMPO {tempo_atual} **************\n")
+        #ADICIONAR NO ARQUIVO
         print("AGUARDANDO PROCESSOS NA FILA")
+        saida.write("AGUARDANDO PROCESSOS NA FILA\n\n")
+        #ADICIONAR NO ARQUIVO
         print("CPU: VAZIA")
+        saida.write("CPU: VAZIA\n\n")
+        #ADICIONAR NO ARQUIVO
         Fila = FilaProcessos(Fila, tempo_atual, processos)
         if Fila:
             print("Iniciando....")
+            saida.write("Iniciando....\n")
+            #ADICIONAR NO ARQUIVO
             control = 1
         tempo_atual+=1
 
     while io_atual:
 
         print(f"********** TEMPO {tempo_atual} **************")
+        saida.write(f"********** TEMPO {tempo_atual} **************\n")
+        #ADICIONAR NO ARQUIVO
         if not control:
             print("#[evento] CHEGADA:", Fila[0])
+            saida.write(f"#[evento] CHEGADA: {Fila[0]}\n")
+            #ADICIONAR NO ARQUIVO
         Fila = FilaProcessos(Fila, tempo_atual, processos)
 
         # Verifica a preempção do quantum
         if tempo_quantum == 0:
             print("#[evento] PREEMÇÃO QUANTUM")
+            saida.write("#[evento] PREEMÇÃO QUANTUM\n")
+            #ADICIONAR NO ARQUIVO
             Fila = Fila_handler(Fila, processo_atual)
             tempo_quantum = quantum  # Reset do quantum após preempção
 
@@ -145,6 +177,8 @@ def roudrobin(quantum):
                     primeiro_elemento = dados[2][0]
                     if  io_atual[processo_atual] == primeiro_elemento and  io_atual[processo_atual] != 0:
                         print("#[evento] IO")
+                        saida.write("#[evento] IO\n\n")
+                        #ADICIONAR NO ARQUIVO
                         dados[2].pop(0)  # Remove o evento de I/O
                         tempo_quantum = quantum  # Reset do quantum após I/O
                         Fila = Fila_handler(Fila, processo_atual)
@@ -152,8 +186,10 @@ def roudrobin(quantum):
         # Atualiza o processo atual na CPU
         Fila, processo_atual, io_atual, tempo_quantum = CPU(Fila, processos, io_atual, quantum,tempo_quantum)
         print("Fila (Professor):", Fila[1:])
+        saida.write(f"Fila (Professor): {Fila[1:]}\n")
 
-        #
+        #ADICIONAR NO ARQUIVO
+
         for processo in Fila[1:]:
             if processo in tempo_espera:
                 tempo_espera[processo] += 1
@@ -163,11 +199,14 @@ def roudrobin(quantum):
         tempo_espera
         tempo_quantum -= 1
         tempo_atual += 1
-        #Incrementar 1 em cada contador de IO
+
         if processo_atual:
             io_atual[processo_atual] += 1
 
 # Executa o round-robin
+
+#CRIAR O AQRUIVO 
+
 
 
 
@@ -176,19 +215,30 @@ roudrobin(4)
 
 
 print("-----------------------------------")
-print("------- Encerrando simulacao ------")
+saida.write("-----------------------------------\n")
+print("------- Encerrando simulacao ------\n")
+saida.write("------- Encerrando simulacao ------")
 print("-----------------------------------")
+saida.write("-----------------------------------\n")
+#ADICIONAR NO ARQUIVO
 
 
 
 
 
 print("\nTempo de espera:\n")
+#ADICIONAR NO ARQUIVO
 
 print(tempo_espera)
 
 print("Soma:", sum(tempo_espera.values()))
+#ADICIONAR NO ARQUIVO
 print("Media:", sum(tempo_espera.values()) / len(tempo_espera) if tempo_espera else 0)
+#ADICIONAR NO ARQUIVO
+
+
+saida.close()
+#SALVAR /FECHARO ARQUIVO 
 
 #EXTRA 
 
@@ -203,7 +253,7 @@ print("Media:", sum(tempo_espera.values()) / len(tempo_espera) if tempo_espera e
 # print(" | ".join(gantt_chart))
 # print("-----------------------------------")
 
-
+import time
 
 gantt_chart_dict = {}
 
@@ -274,6 +324,3 @@ handles = [mpatches.Patch(color=cores[proc], label=proc) for proc in processos]
 ax.legend(handles=handles, title="Processos")
 
 plt.show()
-
-
-
