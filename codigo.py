@@ -47,19 +47,20 @@ def FilaProcessos(Fila, tempo_atual, processos):
     Fila_aux = Fila[:]
     for processo, dados in processos.items():
         if tempo_atual == dados[0] and processo not in Fila_aux:
+            #ADICIONAR NOVOS PROCESSOS
             print("#[evento] CHEGADA:", processo)
             saida.write(f"#[evento] CHEGADA: {processo}\n\n")
-            #ADICIONAR NO ARQUIVO
             Fila_aux.append(processo)
     
+    #MOSTRAR FILA ATUAL
     print("Fila:", Fila_aux)
     saida.write(f"Fila: {Fila_aux}\n\n")
-    #ADICIONAR NO ARQUIVO
+
     return Fila_aux
 
 
 def Fila_handler(Fila, processo_atual):
-
+    #FAZER A FILA GIRAR
     Fila_aux = Fila[:]
     if processo_atual:
         Fila_aux.append(processo_atual)
@@ -80,17 +81,18 @@ def CPU(Fila, processos, io_atual,quantum,tempo_quantum):
         if processo_atual == processo:
             #Pegar o processo atual: referente ao dicionario
             if dados[1] == 0:
-                #Se o processo acabou pegar o proximo:
+                #1) PROCESSO ACABOU MUDAR PARA O PROXIMO
                 print("#[evento] ENCERRANDO ", processo_atual)
                 saida.write(f"#[evento] ENCERRANDO {processo_atual}\n\n")
-                io_atual.pop(processo_atual, None) 
+                io_atual.pop(processo_atual, None) #CONTROLADOR DA FILA DE IO
                 processo_atual = None
                 Fila_aux = Fila_handler(Fila_aux, processo_atual)
-
                 processo_atual = Fila_aux[0] if Fila_aux else None
                 tempo_quantum = quantum
     
                 if processo_atual:
+
+                    # IMPLICAÇÃO E SE 2 PROCESSOS SEGUIDOS SAIREM DA CPU ?
                     if processos[processo_atual][1] == 0 :
                         return CPU(Fila_aux, processos, io_atual, quantum, tempo_quantum)
 
@@ -183,7 +185,6 @@ def roudrobin(quantum):
 
 
 
-        tempo_espera
         tempo_quantum -= 1
         tempo_atual += 1
         count+=1
@@ -192,25 +193,14 @@ def roudrobin(quantum):
             io_atual[processo_atual] += 1
 
 
-        #Tratativa quando houver quamtum ou IO no ultimo processo
-
-
-
         if not io_atual:
             break
         if count >40:
-            print("parada forçada")
+            print("Parada forçada!")
             break
-
-# Executa o round-robin
-
-#CRIAR O AQRUIVO 
-
-
 
 
 roudrobin(4)    
-
 
 
 print("-----------------------------------")
@@ -219,21 +209,16 @@ print("------- Encerrando simulacao ------\n")
 saida.write("------- Encerrando simulacao ------")
 print("-----------------------------------")
 saida.write("-----------------------------------\n")
-#ADICIONAR NO ARQUIVO
-
-
-
 
 
 print("\nTempo de espera:\n")
-#ADICIONAR NO ARQUIVO
 
 print(tempo_espera)
 
 print("Soma:", sum(tempo_espera.values()))
-#ADICIONAR NO ARQUIVO
+
 print("Media:", sum(tempo_espera.values()) / len(tempo_espera) if tempo_espera else 0)
-#ADICIONAR NO ARQUIVO
+
 
 
 saida.close()
@@ -246,11 +231,6 @@ saida.close()
 #tempo. Não basta gerar uma imagem final da execução. Tem que ser gerado em tempo real,
 #ou seja, enquanto executa vai mostrando o gráfico de gantt sendo feito.
 
-
-#DEBUG PURPOSE PRINT
-# print("\nGráfico de Gantt:")
-# print(" | ".join(gantt_chart))
-# print("-----------------------------------")
 
 import time
 
@@ -284,14 +264,10 @@ for i in range(gantt_length):
     time.sleep(1)
 
 
-print("Finalizado!")
-
-
-##CALCULAR TEMPO DE ESPERA E TEMPO DE ESPERA MEDIO 
+print("\nFinalizado!\n")
 
 
 ##CRIAR GRÁFICO SEPARADO
-
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
