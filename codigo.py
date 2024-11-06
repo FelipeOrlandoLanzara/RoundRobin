@@ -75,25 +75,34 @@ def CPU(Fila, processos, io_atual,quantum,tempo_quantum):
     Fila_aux = Fila[:]
     processo_atual = Fila_aux[0]
 
+    #Percorrer toda o dicionario da fila de processos
     for processo, dados in processos.items():
         if processo_atual == processo:
+            #Pegar o processo atual: referente ao dicionario
             if dados[1] == 0:
+                #Se o processo acabou pegar o proximo:
                 print("#[evento] ENCERRANDO ", processo_atual)
                 saida.write(f"#[evento] ENCERRANDO {processo_atual}\n\n")
-                #ADICIONAR NO ARQUIVO 
-                io_atual.pop(processo_atual, None) # caso a chave não exista não faz nada (2o argumento)
+                io_atual.pop(processo_atual, None) 
                 processo_atual = None
                 Fila_aux = Fila_handler(Fila_aux, processo_atual)
+
                 processo_atual = Fila_aux[0] if Fila_aux else None
                 tempo_quantum = quantum
+    
                 if processo_atual:
-                    #print("#[evento] CHEGADA:", processo_atual, "(", processos[processo_atual][1], ")")
-                     #? print("Fila ATUAL =", Fila_aux)
-                    #ADICIONAR NO ARQUIVO
+                    if processos[processo_atual][1] == 0 :
+                        return CPU(Fila_aux, processos, io_atual, quantum, tempo_quantum)
+
+
+        
                     print("CPU:", processo_atual, "(", processos[processo_atual][1], ")")
                     saida.write(f"CPU: {processo_atual} ({processos[processo_atual][1]})\n\n")
                     #ADICIONAR NO ARQUIVO
                     gantt_chart.append(processo_atual)
+                    #IMPLICAÇAO 2 processos podem acabar ao mesmo tempo
+
+                    
                     processos[processo_atual][1] -= 1
                 return Fila_aux, processo_atual, io_atual, tempo_quantum
 
@@ -114,7 +123,8 @@ def roudrobin(quantum):
     tempo_quantum = quantum
     Fila = []
     processo_atual = ""
-    
+    preemp = False
+    count = 0
     io_atual = {processo: 0 for processo in processos.keys()}
     control = None
     print()
@@ -126,39 +136,13 @@ def roudrobin(quantum):
     #ADICIONAR NO ARQUIVO
     
 
-#INICIALIZAR A FILA DE PROCESSOS PELA PRIMEIRA VEZ
-    for processo, dados in processos.items():
-        if tempo_atual == dados[0] and processo not in Fila:
-            Fila.append(processo)
+    # Não houve uma tratativa para inicio em dummy
+    # O código não supor dummy
 
-
-    while not Fila:
-        print(f"********** TEMPO {tempo_atual} **************")  
-        saida.write(f"********** TEMPO {tempo_atual} **************\n")
-        #ADICIONAR NO ARQUIVO
-        print("AGUARDANDO PROCESSOS NA FILA")
-        saida.write("AGUARDANDO PROCESSOS NA FILA\n\n")
-        #ADICIONAR NO ARQUIVO
-        print("CPU: VAZIA")
-        saida.write("CPU: VAZIA\n\n")
-        #ADICIONAR NO ARQUIVO
-        Fila = FilaProcessos(Fila, tempo_atual, processos)
-        if Fila:
-            print("Iniciando....")
-            saida.write("Iniciando....\n")
-            #ADICIONAR NO ARQUIVO
-            control = 1
-        tempo_atual+=1
-
-    while io_atual:
+    while True:
 
         print(f"********** TEMPO {tempo_atual} **************")
         saida.write(f"********** TEMPO {tempo_atual} **************\n")
-        #ADICIONAR NO ARQUIVO
-        if not control:
-            print("#[evento] CHEGADA:", Fila[0])
-            saida.write(f"#[evento] CHEGADA: {Fila[0]}\n")
-            #ADICIONAR NO ARQUIVO
         Fila = FilaProcessos(Fila, tempo_atual, processos)
 
         # Verifica a preempção do quantum
@@ -168,20 +152,23 @@ def roudrobin(quantum):
             #ADICIONAR NO ARQUIVO
             Fila = Fila_handler(Fila, processo_atual)
             tempo_quantum = quantum  # Reset do quantum após preempção
+            preemp = True
+        #PROCESSO PODE OCORRER IO OU QUANTUM NUNCA OS 2 SIMULTANEAMENTE
 
-        # Verificação de evento de I/O
-        for processo, dados in processos.items():
-            
-            if processo_atual == processo:  
-                if dados[2]:  # Verifica se há interrupções de I/O
-                    primeiro_elemento = dados[2][0]
-                    if  io_atual[processo_atual] == primeiro_elemento and  io_atual[processo_atual] != 0:
-                        print("#[evento] IO")
-                        saida.write("#[evento] IO\n\n")
-                        #ADICIONAR NO ARQUIVO
-                        dados[2].pop(0)  # Remove o evento de I/O
-                        tempo_quantum = quantum  # Reset do quantum após I/O
-                        Fila = Fila_handler(Fila, processo_atual)
+        if preemp != True:
+            # Verificação de evento de I/O
+            for processo, dados in processos.items():
+                
+                if processo_atual == processo:  
+                    if dados[2]:  # Verifica se há interrupções de I/O
+                        primeiro_elemento = dados[2][0]
+                        if  io_atual[processo_atual] == primeiro_elemento and  io_atual[processo_atual] != 0:
+                            print("#[evento] IO")
+                            saida.write("#[evento] IO\n\n")
+                            #ADICIONAR NO ARQUIVO
+                            dados[2].pop(0)  # Remove o evento de I/O
+                            tempo_quantum = quantum  # Reset do quantum após I/O
+                            Fila = Fila_handler(Fila, processo_atual)
 
         # Atualiza o processo atual na CPU
         Fila, processo_atual, io_atual, tempo_quantum = CPU(Fila, processos, io_atual, quantum,tempo_quantum)
@@ -199,9 +186,21 @@ def roudrobin(quantum):
         tempo_espera
         tempo_quantum -= 1
         tempo_atual += 1
-
+        count+=1
+        preemp = False
         if processo_atual:
             io_atual[processo_atual] += 1
+
+
+        #Tratativa quando houver quamtum ou IO no ultimo processo
+
+
+
+        if not io_atual:
+            break
+        if count >40:
+            print("parada forçada")
+            break
 
 # Executa o round-robin
 
